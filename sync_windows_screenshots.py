@@ -16,6 +16,17 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def snapshot_digests(source: Path) -> set[str]:
+    """Return hashes already present before a new queue task begins."""
+    if not source.exists():
+        return set()
+    return {
+        digest(path)
+        for path in source.iterdir()
+        if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
+    }
+
+
 def copy_new_images(source: Path, target: Path, known: set[str]) -> int:
     target.mkdir(parents=True, exist_ok=True)
     existing = sorted(
@@ -76,6 +87,11 @@ def main() -> int:
     )
     parser.add_argument("--interval", type=float, default=1.0, help="扫描间隔秒数")
     parser.add_argument("--once", action="store_true", help="只同步一次然后退出")
+    parser.add_argument(
+        "--skip-existing",
+        action="store_true",
+        help="启动时忽略源目录中已经存在的截图，只复制启动后新增的截图",
+    )
     args = parser.parse_args()
 
     args.target.mkdir(parents=True, exist_ok=True)
@@ -83,7 +99,7 @@ def main() -> int:
     print(f"OCR 输入目录：{args.target.resolve()}")
     print("请让 UI-TARS 使用 hotkey(key='win print')；按 Ctrl+C 停止。")
 
-    known: set[str] = set()
+    known = snapshot_digests(args.source) if args.skip_existing else set()
     while True:
         copy_new_images(args.source, args.target, known)
         if args.once:

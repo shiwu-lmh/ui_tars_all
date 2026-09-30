@@ -12,6 +12,7 @@ __pycache__/
 .venv/
 .idea/
 .ui-tars-user-data/
+.ui-tars-user-data-recovery*/
 
 # Node and build artifacts
 node_modules/
@@ -26,3 +27,16 @@ coverage/
 test-results/
 *.log
 *.log.*
+
+# Local queue state and sensitive record outputs
+名单.csv
+queue/*.sqlite3
+queue/current_task.md
+queue/current_task.id
+medical_records/
+
+# Local screenshots and OCR exports
+screenshots/*
+!screenshots/.gitkeep
+queue/*.md
+queue/*.id
