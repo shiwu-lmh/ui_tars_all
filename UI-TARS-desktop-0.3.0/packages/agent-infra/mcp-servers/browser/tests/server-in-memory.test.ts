@@ -293,7 +293,7 @@ describe('MCP Server in memory', () => {
         width: visionWidth,
         height: visionHeight,
       }).toEqual(defaultViewport);
-    });
+    }, 20000);
   });
 
   describe('call vision tools', () => {

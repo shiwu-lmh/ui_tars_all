@@ -1,5 +1,6 @@
 # Local secrets and configuration
 ocr_config.local.json
+model_settings.local.json
 .env
 .env.*
 !.env.example
@@ -13,6 +14,9 @@ __pycache__/
 .idea/
 .ui-tars-user-data/
 .ui-tars-user-data-recovery*/
+.hybrid-chrome-profile/
+*.tsbuildinfo
+UI-TARS-desktop-0.3.0/packages/agent-infra/mcp-servers/browser/tests/__fixtures__/
 
 # Node and build artifacts
 node_modules/
@@ -40,3 +44,4 @@ screenshots/*
 !screenshots/.gitkeep
 queue/*.md
 queue/*.id
+queue/*

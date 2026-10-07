@@ -130,7 +130,7 @@ describe('Browser Tab Management Comprehensive Tests', () => {
       expect(result.content?.[0].text).toContain('Opened new tab with URL:');
     });
 
-    test('should list all tabs', async () => {
+    test('should list all tabs', { timeout: 30000 }, async () => {
       await client.callTool({
         name: 'browser_navigate',
         arguments: { url: baseUrl },

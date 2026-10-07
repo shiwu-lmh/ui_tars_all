@@ -27,9 +27,9 @@ export const DEFAULT_SETTING: LocalStore = {
   vlmApiKey: env.vlmApiKey || '',
   vlmModelName: env.vlmModelName || QWEN_3_8_FLASH_MODEL_NAME,
   useResponsesApi: false,
-  ocrBaseUrl: '',
-  ocrApiKey: '',
-  ocrModelName: 'PaddleOCR-VL',
+  ocrBaseUrl: env.ocrBaseUrl || 'https://paddleocr.aistudio-app.com/api/v2/ocr/jobs',
+  ocrApiKey: env.ocrApiKey || '',
+  ocrModelName: env.ocrModelName,
   maxLoopCount: 100,
   loopIntervalInMs: 1000,
   searchEngineForBrowser: SearchEngineForSettings.GOOGLE,
@@ -49,6 +49,19 @@ export class SettingStore {
       });
 
       const saved = SettingStore.instance.store;
+      const isLegacyDemoOcr =
+        saved.ocrModelName === 'demo-ocr' ||
+        saved.ocrBaseUrl?.includes('127.0.0.1:8787');
+      if (isLegacyDemoOcr) {
+        SettingStore.instance.set({
+          ...saved,
+          ocrBaseUrl:
+            env.ocrBaseUrl ||
+            'https://paddleocr.aistudio-app.com/api/v2/ocr/jobs',
+          ocrApiKey: saved.ocrApiKey || env.ocrApiKey || '',
+          ocrModelName: env.ocrModelName,
+        });
+      }
       if (!saved.vlmProvider && !saved.vlmBaseUrl && !saved.vlmModelName) {
         SettingStore.instance.set({
           ...saved,

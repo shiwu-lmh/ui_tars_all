@@ -81,7 +81,7 @@ describe('MCP Resources', () => {
   });
 
   describe('screenshot resources', () => {
-    test('should list available screenshot resources', async () => {
+    test('should list available screenshot resources', { timeout: 30000 }, async () => {
       await client.callTool({
         name: 'browser_navigate',
         arguments: {

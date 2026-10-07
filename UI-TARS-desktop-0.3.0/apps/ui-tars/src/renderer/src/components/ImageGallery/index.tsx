@@ -125,7 +125,10 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
           timing: msg.timing,
         };
       })
-      .filter((entry) => entry.imageData);
+      .filter(
+        (entry): entry is typeof entry & { imageData: string } =>
+          Boolean(entry.imageData),
+      );
   }, [messages]);
 
   useEffect(() => {

@@ -16,15 +16,15 @@ import { describe, test, expect } from 'vitest';
 describe('execFileWithInput integration tests', () => {
   // ok, impressive choice of "seam" to add testing of the most critical part, executing the command! this is EXACTLY what I had in mind and didn't even tell Claude I wanted.
 
-  test('should execute a simple bash command', async () => {
-    const result = await execFileWithInput('bash', 'echo "Hello World"', {});
+  test('should execute a simple portable command', async () => {
+    const result = await execFileWithInput('node', 'console.log("Hello World")', {});
     expect(result.stdout.trim()).toBe('Hello World');
     expect(result.stderr).toBe('');
   });
 
-  test('should handle command errors properly in bash', async () => {
+  test('should handle command errors properly', async () => {
     try {
-      await execFileWithInput('bash', 'nonexistentcommand', {});
+      await execFileWithInput('node', 'nonexistentcommand()', {});
       expect.fail('Should have thrown an error');
     } catch (error: any) {
       expect(error.stderr).toContain('nonexistentcommand');
@@ -89,21 +89,18 @@ Number 3
   });
 
   test('should respect working directory option', async () => {
-    // FYI best to pick a path that is common on both macOS and Linux
-    //  unfortunately, on macOS /tmp is a symlink to /private/tmp so that can cause issues
-    // TODO make sure cwd is not already / in the test?
-    // PRN use multiple paths would be another way around checking cwd of test runner
-    const result = await execFileWithInput('bash', 'pwd', { cwd: '/' });
-    expect(result.stdout.trim()).toBe('/');
+    const cwd = process.cwd();
+    const result = await execFileWithInput('node', 'process.stdout.write(process.cwd())', { cwd });
+    expect(result.stdout.trim()).toBe(cwd);
   });
 
-  test('should handle bash multiline scripts', async () => {
+  test('should handle multiline scripts', async () => {
     const script = `
-      echo "Line 1"
-      echo "Line 2"
-      echo "Line 3"
+      console.log("Line 1")
+      console.log("Line 2")
+      console.log("Line 3")
     `;
-    const result = await execFileWithInput('bash', script, {});
+    const result = await execFileWithInput('node', script, {});
     // validate all of output:
     expect(result.stdout).toContain(`Line 1
 Line 2

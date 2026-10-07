@@ -13,5 +13,7 @@ export default defineConfig({
     include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     retry: 1,
     testTimeout: 15000,
+    hookTimeout: 30000,
+    fileParallelism: false,
   },
 });

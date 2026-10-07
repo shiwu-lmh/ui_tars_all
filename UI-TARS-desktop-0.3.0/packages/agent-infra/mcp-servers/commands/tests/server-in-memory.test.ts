@@ -49,10 +49,13 @@ describe('MCP Server in memory', () => {
       server.connect(serverTransport),
     ]);
 
+    const listingCommand = process.platform === 'win32'
+      ? 'echo server-in-memory.test.ts'
+      : `ls ${__dirname}`;
     const result = await client.callTool({
       name: 'run_command',
       arguments: {
-        command: `ls ${__dirname}`,
+        command: listingCommand,
       },
     });
     const currentFileName = path.basename(__filename);

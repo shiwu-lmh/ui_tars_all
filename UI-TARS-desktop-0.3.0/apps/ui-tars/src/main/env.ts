@@ -21,6 +21,10 @@ export const vlmProvider = process.env.VLM_PROVIDER;
 export const vlmBaseUrl = process.env.VLM_BASE_URL;
 export const vlmApiKey = process.env.VLM_API_KEY;
 export const vlmModelName = process.env.VLM_MODEL_NAME;
+export const ocrBaseUrl = process.env.PADDLEOCR_BASE_URL;
+export const ocrApiKey =
+  process.env.PADDLEOCR_ACCESS_TOKEN || process.env.PADDLEOCR_API_KEY;
+export const ocrModelName = process.env.PADDLEOCR_MODEL || 'PaddleOCR-VL-1.6';
 
 const { platform } = process;
 export const isMacOS = platform === 'darwin';

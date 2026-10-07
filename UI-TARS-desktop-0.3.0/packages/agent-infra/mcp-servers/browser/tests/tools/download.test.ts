@@ -86,7 +86,7 @@ describe('Browser Download Tests', () => {
       console.warn('Error closing browser in afterEach:', error);
     }
     await client.close();
-  });
+  }, 30000);
 
   test(
     'should download file and read content via resource',

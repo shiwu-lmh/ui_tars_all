@@ -11,6 +11,7 @@ import mimetypes
 import os
 import re
 import sys
+import tempfile
 import urllib.error
 import urllib.request
 import time
@@ -48,6 +49,10 @@ def natural_key(path: Path) -> list[object]:
 
 
 def normalize_line(line: str) -> str:
+    # Official PaddleOCR markdown may number identical layout rows. Ignore
+    # only that leading row number while deduplicating; keep the displayed
+    # line unchanged in the final document.
+    line = re.sub(r"^\s*\d+\s*\|", "|", line)
     return re.sub(r'[\s，,。.!！?？:：;；"“”‘’（）()【】\[\]<>《》、]', "", line).casefold()
 
 
@@ -117,11 +122,10 @@ def recognize_official_api(path: Path, jobs_url: str, model: str, access_token: 
         {
             "useDocOrientationClassify": False,
             "useDocUnwarping": False,
-            # UI-TARS captures are application screenshots rather than scanned
-            # documents. Disabling layout detection makes the VLM read the
-            # visible screen text instead of classifying the whole page as an
-            # image/footer block.
-            "useLayoutDetection": False,
+            # Desktop screenshots often contain overlapping application
+            # windows. Allow the caller to opt into document layout parsing;
+            # plain OCR is the safer default for screen text.
+            "useLayoutDetection": os.getenv("PADDLEOCR_USE_LAYOUT_DETECTION", "0") == "1",
             "useChartRecognition": False,
         },
         separators=(",", ":"),
@@ -238,7 +242,10 @@ def recognize_image(
     mime = mimetypes.guess_type(path.name)[0] or "image/png"
     encoded = base64.b64encode(path.read_bytes()).decode("ascii")
     if api_mode == "paddleocr-service":
-        payload = {"file": encoded, "fileType": 1}
+        payload = {
+            "file": encoded,
+            "fileType": 0 if path.suffix.lower() == ".pdf" else 1,
+        }
     else:
         payload = {
             "model": model,
@@ -298,6 +305,49 @@ def recognize_image(
     return ""
 
 
+def recognize_document(
+    images: list[Path], url: str, api_mode: str, model: str, api_key: str
+) -> str:
+    """Submit all images from one patient folder as one document OCR job.
+
+    The official PaddleOCR API accepts a PDF as one multi-page input. The
+    temporary PDF preserves the screenshot order, so one patient folder maps
+    to one remote OCR job and one result document.
+    """
+    if not images:
+        raise ValueError("患者目录中没有可识别截图")
+    if len(images) == 1:
+        return recognize_image(images[0], url, api_mode, model, api_key)
+    if api_mode not in {"official-api", "paddleocr-service"}:
+        raise RuntimeError("按患者合并 OCR 需要 official-api 或 paddleocr-service 模式")
+
+    try:
+        from PIL import Image, ImageOps
+    except ImportError as error:
+        raise RuntimeError("按患者合并 OCR 需要 Pillow，请运行：python -m pip install Pillow") from error
+
+    file_descriptor, temporary_name = tempfile.mkstemp(prefix="paddleocr-patient-", suffix=".pdf")
+    os.close(file_descriptor)
+    temporary_pdf = Path(temporary_name)
+    opened: list[Image.Image] = []
+    try:
+        for image_path in images:
+            with Image.open(image_path) as source:
+                opened.append(ImageOps.exif_transpose(source).convert("RGB"))
+        opened[0].save(
+            temporary_pdf,
+            format="PDF",
+            save_all=True,
+            append_images=opened[1:],
+            resolution=150.0,
+        )
+        return recognize_image(temporary_pdf, url, api_mode, model, api_key)
+    finally:
+        for image in opened:
+            image.close()
+        temporary_pdf.unlink(missing_ok=True)
+
+
 def collect_images(source: Path) -> list[Path]:
     if source.is_file():
         if source.suffix.lower() not in IMAGE_EXTENSIONS:
@@ -325,15 +375,18 @@ def main() -> int:
         "--base-url",
         help="OpenAI 兼容 API 地址；默认读取 ocr_config.json",
     )
+    default_config = Path(__file__).with_name("ocr_config.local.json")
+    if not default_config.exists():
+        default_config = Path(__file__).with_name("ocr_config.json")
     parser.add_argument(
         "--config",
         type=Path,
-        default=Path(__file__).with_name("ocr_config.json"),
-        help="API 配置文件路径",
+        default=default_config,
+        help="API 配置文件路径；默认优先读取未提交的 ocr_config.local.json",
     )
     parser.add_argument(
         "--model",
-        help="服务端模型名（默认：PaddleOCR-VL）",
+        help="服务端模型名（默认：PaddleOCR-VL-1.6）",
     )
     parser.add_argument(
         "--api-mode",
@@ -364,7 +417,7 @@ def main() -> int:
     model = (
         args.model
         or os.getenv("PADDLEOCR_MODEL")
-        or config.get("model", "PaddleOCR-VL")
+        or config.get("model", "PaddleOCR-VL-1.6")
     )
     api_mode = args.api_mode or config.get("api_mode", "official-api")
     if api_mode not in {"official-api", "paddleocr-service", "openai-compatible"}:

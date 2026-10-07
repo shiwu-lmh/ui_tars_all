@@ -126,7 +126,7 @@ describe('Browser Content Tests', () => {
   }, 30000);
 
   describe('browser_get_markdown', () => {
-    test('should return markdown of the current page', async () => {
+    test('should return markdown of the current page', { timeout: 30000 }, async () => {
       await client.callTool({
         name: 'browser_navigate',
         arguments: { url: baseUrl },

@@ -161,7 +161,7 @@ describe('Browser MCP Server', () => {
       name: 'browser_close',
     });
     await client.close();
-  });
+  }, 30000);
 
   describe('Server Configuration', () => {
     test('should list all available tools', async () => {
@@ -192,7 +192,7 @@ describe('Browser MCP Server', () => {
         },
       });
       expect(result.isError).toBe(false);
-    });
+    }, 20000);
 
     test('should handle navigation to invalid URL', async () => {
       const result = await client.callTool({

@@ -5,6 +5,7 @@
 import { type ExecuteParams } from '@ui-tars/sdk/core';
 import {
   Button,
+  clipboard,
   Key,
   Point,
   Region,
@@ -53,6 +54,10 @@ vi.mock('@computer-use/nut-js', async (importOriginal) => {
       config: {
         autoDelayMs: 0,
       },
+    },
+    clipboard: {
+      getContent: vi.fn().mockResolvedValue(''),
+      setContent: vi.fn().mockResolvedValue(undefined),
     },
     Button: {
       LEFT: 'left',
@@ -121,7 +126,11 @@ describe('execute', () => {
 
     await nutJSOperator.execute(executeParams);
 
-    expect(keyboard.type).toHaveBeenCalledWith('doubao.com');
+    if (process.platform === 'win32') {
+      expect(clipboard.setContent).toHaveBeenCalledWith('doubao.com');
+    } else {
+      expect(keyboard.type).toHaveBeenCalledWith('doubao.com');
+    }
     expect(keyboard.pressKey).toHaveBeenCalledWith(Key.Enter);
   });
 
@@ -145,7 +154,11 @@ describe('execute', () => {
 
     await nutJSOperator.execute(executeParams);
 
-    expect(keyboard.type).toHaveBeenCalledWith('doubao.com');
+    if (process.platform === 'win32') {
+      expect(clipboard.setContent).toHaveBeenCalledWith('doubao.com');
+    } else {
+      expect(keyboard.type).toHaveBeenCalledWith('doubao.com');
+    }
     expect(keyboard.pressKey).not.toHaveBeenCalledWith(Key.Enter);
   });
 
@@ -169,7 +182,11 @@ describe('execute', () => {
 
     await nutJSOperator.execute(executeParams);
 
-    expect(keyboard.type).toHaveBeenCalledWith('Hello World\\nUI-TARS');
+    if (process.platform === 'win32') {
+      expect(clipboard.setContent).toHaveBeenCalledWith('Hello World\\nUI-TARS');
+    } else {
+      expect(keyboard.type).toHaveBeenCalledWith('Hello World\\nUI-TARS');
+    }
     expect(keyboard.pressKey).toHaveBeenCalledWith(Key.Enter);
   });
 

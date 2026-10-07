@@ -6,6 +6,15 @@ import { describe, it, expect } from 'vitest';
 import { parseActionVlm } from '../src/actionParser';
 
 describe('parseActionVlm', () => {
+  it('should parse an action wrapped in a Markdown code fence', () => {
+    const result = parseActionVlm(
+      '```text\nThought: scroll to the next section\nAction: scroll(start_box=\'[500,500]\', direction=\'down\')\n```',
+    );
+
+    expect(result[0].action_type).toBe('scroll');
+    expect(result[0].action_inputs.direction).toBe('down');
+  });
+
   // BC mode tests
   describe('BC mode', () => {
     it('should correctly parse input with Thought', () => {

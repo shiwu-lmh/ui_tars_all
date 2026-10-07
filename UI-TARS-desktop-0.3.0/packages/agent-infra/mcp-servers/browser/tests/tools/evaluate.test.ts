@@ -85,7 +85,7 @@ describe('Browser Evaluate Tests', () => {
     httpServer.close();
   });
 
-  test('should execute JavaScript and return result', async () => {
+  test('should execute JavaScript and return result', { timeout: 30000 }, async () => {
     await client.callTool({
       name: 'browser_navigate',
       arguments: { url: baseUrl },

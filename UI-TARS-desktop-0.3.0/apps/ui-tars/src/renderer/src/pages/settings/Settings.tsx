@@ -150,7 +150,7 @@ export default function Settings() {
         vlmModelName: settings.vlmModelName,
         ocrBaseUrl: settings.ocrBaseUrl ?? '',
         ocrApiKey: settings.ocrApiKey ?? '',
-        ocrModelName: settings.ocrModelName ?? 'PaddleOCR-VL',
+        ocrModelName: settings.ocrModelName ?? 'PaddleOCR-VL-1.6',
         maxLoopCount: settings.maxLoopCount,
         loopIntervalInMs: settings.loopIntervalInMs,
         searchEngineForBrowser: settings.searchEngineForBrowser,
@@ -419,7 +419,7 @@ export default function Settings() {
               >
                 <h2 className="text-lg font-medium">{SECTIONS.ocr}</h2>
                 <p className="text-sm text-muted-foreground">
-                  配置公司提供的 OpenAI 兼容 Chat Completions 服务地址，然后在截图查看器中点击“识别文字”。
+                  配置 PaddleOCR 官方 API 地址和 Access Token，然后在截图查看器中点击“识别文字”。
                 </p>
                 <FormField
                   control={form.control}
@@ -429,7 +429,7 @@ export default function Settings() {
                       <FormLabel>服务地址</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="例如 http://ocr.example.com/v1"
+                          placeholder="https://paddleocr.aistudio-app.com/api/v2/ocr/jobs"
                           {...field}
                         />
                       </FormControl>
@@ -459,7 +459,7 @@ export default function Settings() {
                     <FormItem>
                       <FormLabel>模型名称</FormLabel>
                       <FormControl>
-                        <Input placeholder="PaddleOCR-VL" {...field} />
+                        <Input placeholder="PaddleOCR-VL-1.6" {...field} />
                       </FormControl>
                     </FormItem>
                   )}
